@@ -83,7 +83,7 @@ The response includes the document ID and download URL (`pdfUrl`).
 ## Support
 
 - For Diro-related issues: [support@getdiro.com](mailto:support@getdiro.com)
-- For node bugs: [GitHub Issues](https://github.com/getdiro/n8n-nodes-diro/issues)
+- For node bugs: [GitHub Issues](https://github.com/ohjinseok/n8n-nodes-diro/issues)
 
 ## License
 
