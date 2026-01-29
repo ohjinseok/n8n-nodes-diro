@@ -13,11 +13,11 @@
   ],
   "author": {
     "name": "Diro",
-    "email": "support@getdiro.com"
+    "email": "admin@tempoze.co.kr"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/getdiro/n8n-nodes-diro.git"
+    "url": "https://github.com/ohjinseok/n8n-nodes-diro.git"
   },
   "homepage": "https://getdiro.com",
   "main": "dist/nodes/Diro/Diro.node.js",
