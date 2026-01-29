@@ -1,0 +1,19 @@
+{
+  "node": "n8n-nodes-diro.diro",
+  "nodeVersion": "1.0",
+  "codexVersion": "1.0",
+  "categories": ["Productivity", "Marketing & Content"],
+  "resources": {
+    "credentialDocumentation": [
+      {
+        "url": "https://docs.getdiro.com/authentication"
+      }
+    ],
+    "primaryDocumentation": [
+      {
+        "url": "https://docs.getdiro.com"
+      }
+    ]
+  },
+  "alias": ["document", "pdf", "report", "template", "automation"]
+}
