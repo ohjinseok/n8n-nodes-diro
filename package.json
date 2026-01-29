@@ -23,11 +23,11 @@
   "main": "dist/nodes/Diro/Diro.node.js",
   "scripts": {
     "build": "tsc && npm run copy:icons",
-    "copy:icons": "cp src/nodes/Diro/diro.svg dist/nodes/Diro/",
+    "copy:icons": "cp nodes/Diro/diro.svg dist/nodes/Diro/",
     "dev": "tsc --watch",
-    "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint nodes/ credentials/",
+    "lint:fix": "eslint nodes/ credentials/ --fix",
+    "format": "prettier --write \"nodes/**/*.ts\" \"credentials/**/*.ts\"",
     "prepublishOnly": "npm run build"
   },
   "files": [
@@ -35,6 +35,7 @@
   ],
   "n8n": {
     "n8nNodesApiVersion": 1,
+    "strict": true,
     "credentials": [
       "dist/credentials/DiroApi.credentials.js"
     ],
