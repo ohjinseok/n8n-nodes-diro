@@ -76,8 +76,8 @@ The response includes the document ID and download URL (`pdfUrl`).
 
 ## Resources
 
-- [Diro Documentation](https://docs.getdiro.com)
-- [API Reference](https://docs.getdiro.com/api-reference/overview)
+- [Diro Documentation](https://getdiro.com/docs)
+- [API Reference](https://getdiro.com/docs/api-reference/overview)
 - [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
 
 ## Support
