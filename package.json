@@ -1,0 +1,56 @@
+{
+  "name": "n8n-nodes-diro",
+  "version": "0.1.0",
+  "description": "n8n community node for Diro - Document automation API",
+  "license": "MIT",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "document",
+    "pdf",
+    "automation",
+    "diro"
+  ],
+  "author": {
+    "name": "Diro",
+    "email": "support@getdiro.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getdiro/n8n-nodes-diro.git"
+  },
+  "homepage": "https://getdiro.com",
+  "main": "dist/nodes/Diro/Diro.node.js",
+  "scripts": {
+    "build": "tsc && npm run copy:icons",
+    "copy:icons": "cp src/nodes/Diro/diro.svg dist/nodes/Diro/",
+    "dev": "tsc --watch",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [
+      "dist/credentials/DiroApi.credentials.js"
+    ],
+    "nodes": [
+      "dist/nodes/Diro/Diro.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.6.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
