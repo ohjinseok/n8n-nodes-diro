@@ -206,6 +206,20 @@ export class Diro implements INodeType {
         },
       },
       {
+        displayName: 'Array Fields (JSON)',
+        name: 'arrayFields',
+        type: 'json',
+        default: '{}',
+        displayOptions: {
+          show: {
+            resource: ['document'],
+            operation: ['generate'],
+          },
+        },
+        description:
+          'JSON object for array fields like lineItems. Example: {"lineItems": [{"qty": 1, "description": "Item 1", "unitPrice": 100}]}',
+      },
+      {
         displayName: 'Options',
         name: 'options',
         type: 'collection',
@@ -410,28 +424,38 @@ export class Diro implements INodeType {
         const fields = templateData.fields || [];
 
         return {
-          fields: fields.map((field: IDataObject) => {
-            const fieldType = (field.type as string || 'text').toLowerCase();
-            let type: FieldType = 'string';
+          fields: fields
+            .map((field: IDataObject) => {
+              const fieldType = (field.type as string || 'text').toLowerCase();
+              let type: FieldType = 'string';
+              let description: string | undefined;
 
-            if (fieldType === 'number' || fieldType === 'integer' || fieldType === 'float') {
-              type = 'number';
-            } else if (fieldType === 'boolean' || fieldType === 'bool') {
-              type = 'boolean';
-            } else if (fieldType === 'date' || fieldType === 'datetime') {
-              type = 'dateTime';
-            }
+              if (fieldType === 'number' || fieldType === 'integer' || fieldType === 'float') {
+                type = 'number';
+              } else if (fieldType === 'boolean' || fieldType === 'bool') {
+                type = 'boolean';
+              } else if (fieldType === 'date' || fieldType === 'datetime') {
+                type = 'dateTime';
+              } else if (fieldType === 'array') {
+                // array 필드는 별도 JSON 필드에서 입력받으므로 resourceMapper에서 숨김
+                return null;
+              } else if (fieldType === 'image') {
+                type = 'string';
+                description = 'Image URL';
+              }
 
-            return {
-              id: field.key as string,
-              displayName: (field.label as string) || (field.key as string),
-              type,
-              required: (field.required as boolean) || false,
-              defaultMatch: false,
-              canBeUsedToMatch: true,
-              display: true,
-            };
-          }),
+              return {
+                id: field.key as string,
+                displayName: (field.label as string) || (field.key as string),
+                type,
+                required: (field.required as boolean) || false,
+                defaultMatch: false,
+                canBeUsedToMatch: true,
+                display: true,
+                ...(description && { description }),
+              };
+            })
+            .filter(Boolean) as ResourceMapperFields['fields'],
         };
       },
     },
@@ -454,6 +478,7 @@ export class Diro implements INodeType {
           if (operation === 'generate') {
             const templateId = this.getNodeParameter('templateId', i) as string;
             const templateFields = this.getNodeParameter('templateFields', i) as IDataObject;
+            const arrayFieldsStr = this.getNodeParameter('arrayFields', i) as string;
             const options = this.getNodeParameter('options', i) as IDataObject;
 
             // Extract field values from resourceMapper
@@ -462,6 +487,19 @@ export class Diro implements INodeType {
             for (const [key, value] of Object.entries(fieldValues)) {
               if (value !== undefined && value !== null && value !== '') {
                 data[key] = value;
+              }
+            }
+
+            // Merge array fields from JSON input
+            if (arrayFieldsStr && arrayFieldsStr !== '{}') {
+              try {
+                const arrayData = JSON.parse(arrayFieldsStr) as IDataObject;
+                Object.assign(data, arrayData);
+              } catch {
+                throw new NodeApiError(this.getNode(), {
+                  message: 'Invalid JSON in Array Fields',
+                  description: 'Please provide valid JSON for array fields',
+                });
               }
             }
 
