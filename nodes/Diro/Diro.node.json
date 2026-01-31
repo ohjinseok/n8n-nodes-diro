@@ -6,12 +6,12 @@
   "resources": {
     "credentialDocumentation": [
       {
-        "url": "https://docs.getdiro.com/authentication"
+        "url": "https://www.getdiro.com/docs/authentication"
       }
     ],
     "primaryDocumentation": [
       {
-        "url": "https://docs.getdiro.com"
+        "url": "https://www.getdiro.com/docs"
       }
     ]
   },

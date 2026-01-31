@@ -1,10 +1,14 @@
 import type {
   IExecuteFunctions,
+  ILoadOptionsFunctions,
   INodeExecutionData,
   INodeType,
   INodeTypeDescription,
+  INodePropertyOptions,
   IHttpRequestMethods,
   IDataObject,
+  ResourceMapperFields,
+  FieldType,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
@@ -155,10 +159,13 @@ export class Diro implements INodeType {
 
       // ===== Document: Generate =====
       {
-        displayName: 'Template ID',
+        displayName: 'Template',
         name: 'templateId',
-        type: 'string',
+        type: 'options',
         required: true,
+        typeOptions: {
+          loadOptionsMethod: 'getTemplates',
+        },
         displayOptions: {
           show: {
             resource: ['document'],
@@ -166,12 +173,13 @@ export class Diro implements INodeType {
           },
         },
         default: '',
-        description: 'The ID of the template to use for document generation',
+        description: 'The template to use for document generation',
       },
       {
-        displayName: 'Data',
-        name: 'data',
-        type: 'json',
+        displayName: 'Template Fields',
+        name: 'templateFields',
+        type: 'resourceMapper',
+        noDataExpression: true,
         required: true,
         displayOptions: {
           show: {
@@ -179,9 +187,23 @@ export class Diro implements INodeType {
             operation: ['generate'],
           },
         },
-        default: '{}',
-        description:
-          'JSON object with field values. Keys should match template field keys (e.g., {"name": "John", "score": 85}).',
+        default: {
+          mappingMode: 'defineBelow',
+          value: null,
+        },
+        typeOptions: {
+          loadOptionsDependsOn: ['templateId'],
+          resourceMapper: {
+            resourceMapperMethod: 'getTemplateFields',
+            mode: 'add',
+            fieldWords: {
+              singular: 'field',
+              plural: 'fields',
+            },
+            addAllFields: true,
+            multiKeyMatch: false,
+          },
+        },
       },
       {
         displayName: 'Options',
@@ -346,6 +368,75 @@ export class Diro implements INodeType {
     ],
   };
 
+  methods = {
+    loadOptions: {
+      async getTemplates(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        const credentials = await this.getCredentials('diroApi');
+        const baseUrl = (credentials.baseUrl as string) || 'https://getdiro.com';
+
+        const response = await this.helpers.httpRequestWithAuthentication.call(this, 'diroApi', {
+          method: 'GET' as IHttpRequestMethods,
+          url: `${baseUrl}/api/v1/templates`,
+          qs: { limit: 100 },
+          json: true,
+        });
+
+        const templates = response.data?.templates || [];
+        return templates.map((template: IDataObject) => ({
+          name: template.title as string,
+          value: template.id as string,
+          description: (template.description as string) || undefined,
+        }));
+      },
+    },
+    resourceMapping: {
+      async getTemplateFields(this: ILoadOptionsFunctions): Promise<ResourceMapperFields> {
+        const templateId = this.getNodeParameter('templateId', 0) as string;
+
+        if (!templateId) {
+          return { fields: [] };
+        }
+
+        const credentials = await this.getCredentials('diroApi');
+        const baseUrl = (credentials.baseUrl as string) || 'https://getdiro.com';
+
+        const response = await this.helpers.httpRequestWithAuthentication.call(this, 'diroApi', {
+          method: 'GET' as IHttpRequestMethods,
+          url: `${baseUrl}/api/v1/templates/${templateId}`,
+          json: true,
+        });
+
+        const templateData = response.data || response;
+        const fields = templateData.fields || [];
+
+        return {
+          fields: fields.map((field: IDataObject) => {
+            const fieldType = (field.type as string || 'text').toLowerCase();
+            let type: FieldType = 'string';
+
+            if (fieldType === 'number' || fieldType === 'integer' || fieldType === 'float') {
+              type = 'number';
+            } else if (fieldType === 'boolean' || fieldType === 'bool') {
+              type = 'boolean';
+            } else if (fieldType === 'date' || fieldType === 'datetime') {
+              type = 'dateTime';
+            }
+
+            return {
+              id: field.key as string,
+              displayName: (field.label as string) || (field.key as string),
+              type,
+              required: (field.required as boolean) || false,
+              defaultMatch: false,
+              canBeUsedToMatch: true,
+              display: true,
+            };
+          }),
+        };
+      },
+    },
+  };
+
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     const items = this.getInputData();
     const returnData: INodeExecutionData[] = [];
@@ -362,17 +453,16 @@ export class Diro implements INodeType {
         if (resource === 'document') {
           if (operation === 'generate') {
             const templateId = this.getNodeParameter('templateId', i) as string;
-            const dataString = this.getNodeParameter('data', i) as string;
+            const templateFields = this.getNodeParameter('templateFields', i) as IDataObject;
             const options = this.getNodeParameter('options', i) as IDataObject;
 
-            let data: IDataObject;
-            try {
-              data = JSON.parse(dataString);
-            } catch {
-              throw new NodeApiError(this.getNode(), {
-                message: 'Invalid JSON in Data field',
-                description: 'Please provide valid JSON for the data field',
-              });
+            // Extract field values from resourceMapper
+            const data: IDataObject = {};
+            const fieldValues = (templateFields.value as IDataObject) || {};
+            for (const [key, value] of Object.entries(fieldValues)) {
+              if (value !== undefined && value !== null && value !== '') {
+                data[key] = value;
+              }
             }
 
             const body: IDataObject = {
