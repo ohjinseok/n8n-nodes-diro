@@ -8,7 +8,7 @@ import type {
 export class DiroApi implements ICredentialType {
   name = 'diroApi';
   displayName = 'Diro API';
-  documentationUrl = 'https://www.getdiro.com/docs/authentication';
+  documentationUrl = 'https://www.www.getdiro.com/docs/authentication';
   properties: INodeProperties[] = [
     {
       displayName: 'API Key',
@@ -25,7 +25,7 @@ export class DiroApi implements ICredentialType {
       displayName: 'Base URL',
       name: 'baseUrl',
       type: 'string',
-      default: 'https://getdiro.com',
+      default: 'https://www.getdiro.com',
       description: 'Base URL for the Diro API. Change only for self-hosted instances.',
     },
   ];

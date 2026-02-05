@@ -386,7 +386,7 @@ export class Diro implements INodeType {
     loadOptions: {
       async getTemplates(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
         const credentials = await this.getCredentials('diroApi');
-        const baseUrl = (credentials.baseUrl as string) || 'https://getdiro.com';
+        const baseUrl = (credentials.baseUrl as string) || 'https://www.getdiro.com';
 
         const response = await this.helpers.httpRequestWithAuthentication.call(this, 'diroApi', {
           method: 'GET' as IHttpRequestMethods,
@@ -412,7 +412,7 @@ export class Diro implements INodeType {
         }
 
         const credentials = await this.getCredentials('diroApi');
-        const baseUrl = (credentials.baseUrl as string) || 'https://getdiro.com';
+        const baseUrl = (credentials.baseUrl as string) || 'https://www.getdiro.com';
 
         const response = await this.helpers.httpRequestWithAuthentication.call(this, 'diroApi', {
           method: 'GET' as IHttpRequestMethods,
@@ -468,7 +468,7 @@ export class Diro implements INodeType {
     const operation = this.getNodeParameter('operation', 0) as string;
 
     const credentials = await this.getCredentials('diroApi');
-    const baseUrl = (credentials.baseUrl as string) || 'https://getdiro.com';
+    const baseUrl = (credentials.baseUrl as string) || 'https://www.getdiro.com';
 
     for (let i = 0; i < items.length; i++) {
       try {
@@ -503,6 +503,14 @@ export class Diro implements INodeType {
               }
             }
 
+            // Validate that data is not empty
+            if (Object.keys(data).length === 0) {
+              throw new NodeApiError(this.getNode(), {
+                message: 'No template data provided',
+                description: 'Please provide at least one field value in Template Fields or Array Fields. Cannot generate document with empty data.',
+              });
+            }
+
             const body: IDataObject = {
               templateId,
               data,
@@ -524,6 +532,20 @@ export class Diro implements INodeType {
               body,
               json: true,
             });
+
+            // Validate response structure for generate operation
+            if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+              const dataField = (responseData as IDataObject).data;
+
+              // Check if we mistakenly received a list response instead of single document
+              if (dataField && typeof dataField === 'object' && 'documents' in dataField && 'pagination' in dataField) {
+                throw new NodeApiError(this.getNode(), {
+                  message: 'Unexpected API response format',
+                  description: 'Expected a single document but received a document list. This indicates the POST request may have been processed as GET. Please check your API server configuration, or contact Diro support if this persists.',
+                  httpCode: '500',
+                });
+              }
+            }
           } else if (operation === 'get') {
             const documentId = this.getNodeParameter('documentId', i) as string;
 
@@ -615,15 +637,40 @@ export class Diro implements INodeType {
           });
         }
 
-        // Handle array responses (getMany operations)
+        // Handle response based on operation type
         if (Array.isArray(responseData)) {
+          // getMany operations return arrays directly
           for (const item of responseData) {
             returnData.push({ json: item as IDataObject });
           }
         } else {
-          // Extract data from response wrapper if present
-          const data = (responseData as IDataObject).data || responseData;
-          returnData.push({ json: data as IDataObject });
+          // Single item operations (generate, get, delete)
+          let finalData: IDataObject;
+
+          // Check if response has standard wrapper format { success: true, data: {...} }
+          const hasDataProperty = responseData && typeof responseData === 'object' && 'data' in responseData;
+
+          if (hasDataProperty) {
+            const wrappedData = (responseData as IDataObject).data;
+
+            // Additional safety check: verify it's not a list response
+            if (wrappedData && typeof wrappedData === 'object') {
+              if ('documents' in wrappedData && 'pagination' in wrappedData) {
+                // This should have been caught earlier, but just in case
+                throw new NodeApiError(this.getNode(), {
+                  message: 'Received unexpected list response',
+                  description: `Operation '${operation}' should return a single item but received a list with pagination.`,
+                });
+              }
+              finalData = wrappedData as IDataObject;
+            } else {
+              finalData = responseData as IDataObject;
+            }
+          } else {
+            finalData = responseData as IDataObject;
+          }
+
+          returnData.push({ json: finalData });
         }
       } catch (error) {
         if (this.continueOnFail()) {

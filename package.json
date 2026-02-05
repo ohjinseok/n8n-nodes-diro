@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-diro",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "n8n community node for Diro - Document automation API",
   "license": "MIT",
   "keywords": [
@@ -19,7 +19,7 @@
     "type": "git",
     "url": "https://github.com/ohjinseok/n8n-nodes-diro.git"
   },
-  "homepage": "https://getdiro.com",
+  "homepage": "https://www.getdiro.com",
   "main": "dist/nodes/Diro/Diro.node.js",
   "scripts": {
     "build": "tsc && npm run copy:icons",

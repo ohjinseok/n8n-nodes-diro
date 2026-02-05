@@ -1,6 +1,6 @@
 # n8n-nodes-diro
 
-This is an n8n community node for [Diro](https://getdiro.com) - a document automation platform that generates PDF/PNG documents from templates.
+This is an n8n community node for [Diro](https://www.getdiro.com) - a document automation platform that generates PDF/PNG documents from templates.
 
 [n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
 
@@ -22,7 +22,7 @@ npm install n8n-nodes-diro
 
 To use this node, you need a Diro API key:
 
-1. Sign up at [getdiro.com](https://getdiro.com)
+1. Sign up at [www.getdiro.com](https://www.getdiro.com)
 2. Go to Dashboard > API Keys
 3. Create a new API key (requires Pro or Enterprise plan)
 4. Copy the API key (starts with `diro_`)
@@ -76,8 +76,8 @@ The response includes the document ID and download URL (`pdfUrl`).
 
 ## Resources
 
-- [Diro Documentation](https://getdiro.com/docs)
-- [API Reference](https://getdiro.com/docs/api-reference/overview)
+- [Diro Documentation](https://www.getdiro.com/docs)
+- [API Reference](https://www.getdiro.com/docs/api-reference/overview)
 - [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
 
 ## Support
